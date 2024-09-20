@@ -1,15 +1,12 @@
-// @ts-ignore
-import extension from 'extensionizer';
-
-import RPC from './RPC';
-import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from './constants';
+import RPC from "./RPC";
+import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from "./constants";
 import {
   Message,
   RpcConfig,
   ResMessage,
   ReqMessage,
   CallBackHandler,
-} from './types';
+} from "./types";
 
 class ProxyRPC extends RPC {
   private readonly win: Window;
@@ -17,6 +14,7 @@ class ProxyRPC extends RPC {
 
   constructor(win: Window, config: RpcConfig) {
     super(config);
+    console.log("ProxyRPC");
     this.win = win;
     this.proxyResponse = this.proxyResponse.bind(this);
     this.receiveMessage = this.receiveMessage.bind(this);
@@ -30,16 +28,19 @@ class ProxyRPC extends RPC {
   }
 
   private sendPortMessage(message: Message): void {
+    this.connectPort();
+
     if (this.port) {
       this.port.postMessage(message);
     }
   }
 
   protected sendMessage(message: Message): void {
-    this.win.postMessage(message, '*');
+    this.win.postMessage(message, "*");
   }
 
   private receiveMessage(event: MessageEvent): void {
+    console.log("ProxyRPC receiveMessage", event?.data);
     super.onMessage(event.data);
   }
 
@@ -74,13 +75,16 @@ class ProxyRPC extends RPC {
         this.sendMessage(resMessage);
       };
 
-      handler({
-        callback,
-        message,
-      }, ...message.data.data.params);
+      handler(
+        {
+          callback,
+          message,
+        },
+        ...message.data.data.params
+      );
     } catch (error) {
-      if (resMessage.data.data.hasOwnProperty('error')) return;
-      if (resMessage.data.data.hasOwnProperty('result')) return;
+      if (resMessage.data.data.hasOwnProperty("error")) return;
+      if (resMessage.data.data.hasOwnProperty("result")) return;
 
       resMessage.data.data.error = {
         code: JSON_RPC_ERROR_CODES.SERVER_ERROR,
@@ -88,26 +92,43 @@ class ProxyRPC extends RPC {
       };
 
       this.sendMessage(resMessage);
-    };
+    }
   }
 
-  start(): void {
-    this.win.addEventListener('message', this.receiveMessage);
-    this.port = extension.runtime.connect({ name: this.name });
+  connectPort() {
+    if (this.port) {
+      return;
+    }
+
+    this.port = chrome.runtime.connect({ name: this.name });
 
     if (this.port) {
       this.port.onMessage.addListener(this.proxyResponse);
+      this.port.onDisconnect.addListener(() => {
+        console.log("ProxyRPC port onDisconnect");
+
+        if (this.port) {
+          this.port.onMessage.removeListener(this.proxyResponse);
+        }
+        this.port = undefined;
+      });
     }
+  }
+
+  start(): void {
+    this.win.addEventListener("message", this.receiveMessage);
+
+    this.connectPort();
   }
 
   stop(): void {
     super.stop();
-    this.win.removeEventListener('message', this.receiveMessage);
+    this.win.removeEventListener("message", this.receiveMessage);
 
     if (this.port) {
       this.port.onMessage.removeListener(this.proxyResponse);
     }
   }
-};
+}
 
 export default ProxyRPC;

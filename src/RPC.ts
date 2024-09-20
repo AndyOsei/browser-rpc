@@ -1,7 +1,7 @@
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
 
-import { validateMessageSchema } from './helpers';
-import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from './constants';
+import { validateMessageSchema } from "./helpers";
+import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from "./constants";
 import {
   CallID,
   Handler,
@@ -13,7 +13,7 @@ import {
   ResolverObject,
   CallBackHandler,
   CallConfigObject,
-} from './types';
+} from "./types";
 
 export default abstract class RPC {
   protected name: string;
@@ -23,6 +23,7 @@ export default abstract class RPC {
   private calls = new Map<CallID, ResolverObject>();
 
   constructor(config: RpcConfig) {
+    console.log("RPC");
     this.name = config.name;
     this.target = config.target;
 
@@ -35,7 +36,9 @@ export default abstract class RPC {
         this.handlers.set(name, handler);
       }
     }
-  };
+
+    this.onMessage = this.onMessage.bind(this);
+  }
 
   exposeHandler(name: string, handler: Handler): void {
     this.handlers.set(name, handler);
@@ -45,7 +48,12 @@ export default abstract class RPC {
     return this.handlers.delete(name);
   }
 
-  private async _call(handler: string, target: string, timeout: number, args: any[]) {
+  private async _call(
+    handler: string,
+    target: string,
+    timeout: number,
+    args: any[]
+  ) {
     const id = uuid();
 
     const message: ReqMessage = {
@@ -80,21 +88,25 @@ export default abstract class RPC {
 
             resolver({
               code: JSON_RPC_ERROR_CODES.TIMEOUT_ERROR,
-              message: 'Request Timeout',
+              message: "Request Timeout",
             });
           }
         }, timeout);
-      };
+      }
 
       this.calls.set(id, { resolver, timer });
       this.sendMessage(message);
     });
   }
 
-  async call(handler: string, args?: any[] | null, config?: CallConfigObject): Promise<any> {
+  async call(
+    handler: string,
+    args?: any[] | null,
+    config?: CallConfigObject
+  ): Promise<any> {
     let timeout = this.timeout;
 
-    if (config && typeof config.timeout === 'number') {
+    if (config && typeof config.timeout === "number") {
       timeout = config.timeout;
     }
 
@@ -102,7 +114,7 @@ export default abstract class RPC {
       handler,
       config?.target || this.target,
       timeout,
-      args || [],
+      args || []
     );
   }
 
@@ -114,11 +126,11 @@ export default abstract class RPC {
 
     if (message.target === this.name && this.target === message.data.name) {
       switch (type) {
-        case 'req':
+        case "req":
           this.onRequestMessage(<ReqMessage>message);
           break;
 
-        case 'res':
+        case "res":
           this.onResponseMessage(<ResMessage>message);
           break;
       }
@@ -161,13 +173,16 @@ export default abstract class RPC {
         this.sendMessage(resMessage);
       };
 
-      handler({
-        callback,
-        message,
-      }, ...message.data.data.params);
+      handler(
+        {
+          callback,
+          message,
+        },
+        ...message.data.data.params
+      );
     } catch (error) {
-      if (resMessage.data.data.hasOwnProperty('error')) return;
-      if (resMessage.data.data.hasOwnProperty('result')) return;
+      if (resMessage.data.data.hasOwnProperty("error")) return;
+      if (resMessage.data.data.hasOwnProperty("result")) return;
 
       resMessage.data.data.error = {
         code: JSON_RPC_ERROR_CODES.SERVER_ERROR,
@@ -175,10 +190,12 @@ export default abstract class RPC {
       };
 
       this.sendMessage(resMessage);
-    };
+    }
   }
 
   private onResponseMessage(message: ResMessage): void {
+    console.log("onResponseMessage", message);
+
     const { id, error, result } = message.data.data;
 
     const call = this.calls.get(id);
@@ -199,7 +216,7 @@ export default abstract class RPC {
       }
 
       call.resolver({
-        message: 'RPC stopped',
+        message: "RPC stopped",
         code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
       });
     });
@@ -208,5 +225,4 @@ export default abstract class RPC {
   }
 
   protected abstract sendMessage(message: Message): void;
-};
-
+}
