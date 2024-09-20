@@ -1,4 +1,4 @@
-// import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 import { validateMessageSchema } from "./helpers";
 import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from "./constants";
@@ -14,27 +14,6 @@ import {
   CallBackHandler,
   CallConfigObject,
 } from "./types";
-
-const uuid = () => {
-  var S4 = function () {
-    return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
-  };
-
-  return (
-    S4() +
-    S4() +
-    "-" +
-    S4() +
-    "-" +
-    S4() +
-    "-" +
-    S4() +
-    "-" +
-    S4() +
-    S4() +
-    S4()
-  );
-};
 
 export default abstract class RPC {
   protected name: string;
