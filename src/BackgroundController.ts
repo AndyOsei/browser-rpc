@@ -46,7 +46,6 @@ export default class BackgroundController {
   private controllers = new Map<string, ControllerHandler>();
 
   constructor(config: BackgroundControllerConfig) {
-    console.log("BackgroundController");
     const { controllers, trustedSources } = config;
 
     this.name = config.name;
@@ -206,8 +205,6 @@ export default class BackgroundController {
   }
 
   private onPortMessage(message: Message, port: chrome.runtime.Port): void {
-    console.log("onPortMessage", message);
-
     const { type, isValid } = validateMessageSchema(message);
 
     if (!isValid) {
@@ -251,8 +248,6 @@ export default class BackgroundController {
   }
 
   private onPortDisconnect(disconnected: chrome.runtime.Port) {
-    console.log("BackgroundController onPortDisconnect");
-
     let portKey;
 
     this.ports.forEach((port, key) => {
@@ -262,7 +257,6 @@ export default class BackgroundController {
     });
 
     if (portKey) {
-      console.log("BackgroundController onPortDisconnect deleted ", portKey);
       this.ports.delete(portKey);
     }
   }

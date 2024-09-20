@@ -6,7 +6,6 @@ class BrowserRPC extends RPC {
 
   constructor(win: Window, config: RpcConfig) {
     super(config);
-    console.log("BrowserRPC");
     this.win = win;
     this.receiveMessage = this.receiveMessage.bind(this);
   }

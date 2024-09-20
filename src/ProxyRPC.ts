@@ -14,7 +14,6 @@ class ProxyRPC extends RPC {
 
   constructor(win: Window, config: RpcConfig) {
     super(config);
-    console.log("ProxyRPC");
     this.win = win;
     this.proxyResponse = this.proxyResponse.bind(this);
     this.receiveMessage = this.receiveMessage.bind(this);
@@ -40,7 +39,6 @@ class ProxyRPC extends RPC {
   }
 
   private receiveMessage(event: MessageEvent): void {
-    console.log("ProxyRPC receiveMessage", event?.data);
     super.onMessage(event.data);
   }
 
@@ -105,8 +103,6 @@ class ProxyRPC extends RPC {
     if (this.port) {
       this.port.onMessage.addListener(this.proxyResponse);
       this.port.onDisconnect.addListener(() => {
-        console.log("ProxyRPC port onDisconnect");
-
         if (this.port) {
           this.port.onMessage.removeListener(this.proxyResponse);
         }

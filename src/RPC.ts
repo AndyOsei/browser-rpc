@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
 
 import { validateMessageSchema } from "./helpers";
 import { JSON_RPC_VERSION, JSON_RPC_ERROR_CODES } from "./constants";
@@ -23,7 +23,6 @@ export default abstract class RPC {
   private calls = new Map<CallID, ResolverObject>();
 
   constructor(config: RpcConfig) {
-    console.log("RPC");
     this.name = config.name;
     this.target = config.target;
 
@@ -194,8 +193,6 @@ export default abstract class RPC {
   }
 
   private onResponseMessage(message: ResMessage): void {
-    console.log("onResponseMessage", message);
-
     const { id, error, result } = message.data.data;
 
     const call = this.calls.get(id);

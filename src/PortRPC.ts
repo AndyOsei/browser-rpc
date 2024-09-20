@@ -6,7 +6,6 @@ class PortRPC extends RPC {
 
   constructor(config: RpcConfig) {
     super(config);
-    console.log("PortRPC");
     this.receiveMessage = this.receiveMessage.bind(this);
   }
 
@@ -19,7 +18,6 @@ class PortRPC extends RPC {
   }
 
   private receiveMessage(message: any): void {
-    console.log("PortRPC receiveMessage", message);
     super.onMessage(message);
   }
 
@@ -33,8 +31,6 @@ class PortRPC extends RPC {
     if (this.port) {
       this.port.onMessage.addListener(this.receiveMessage);
       this.port.onDisconnect.addListener(() => {
-        console.log("PortRPC port onDisconnect");
-
         if (this.port) {
           this.port.onMessage.removeListener(this.receiveMessage);
         }
